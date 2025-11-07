@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Play,
@@ -7,15 +7,14 @@ import {
   Zap,
   TrendingUp,
   Settings,
-  CheckCircle,
-  Info
+  CheckCircle
 } from 'lucide-react';
 
 /**
  * UniverseSpawner - Main UI for launching parallel optimization universes
  * Vercel-inspired minimal design
  */
-export default function UniverseSpawner({ onOptimize, loading }) {
+export default function UniverseSpawner({ onOptimize, loading, selectedPrompt, onPromptChange }) {
   const [problemDescription, setProblemDescription] = useState('');
   const [selectedStrategies, setSelectedStrategies] = useState([
     'index',
@@ -24,6 +23,13 @@ export default function UniverseSpawner({ onOptimize, loading }) {
     'schema'
   ]);
   const [error, setError] = useState('');
+
+  // Update problem description when selectedPrompt changes
+  useEffect(() => {
+    if (selectedPrompt) {
+      setProblemDescription(selectedPrompt);
+    }
+  }, [selectedPrompt]);
 
   const strategies = [
     {
@@ -82,19 +88,19 @@ export default function UniverseSpawner({ onOptimize, loading }) {
     <motion.section
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="vercel-card p-8"
+      className="vercel-card p-8 md:p-10"
       aria-labelledby="spawner-title"
     >
-      <div className="mb-6">
-        <h2 id="spawner-title" className="text-2xl font-semibold text-vercel-900 dark:text-vercel-50 mb-2">
+      <div className="mb-8 text-center">
+        <h2 id="spawner-title" className="text-3xl font-bold text-vercel-900 dark:text-vercel-50 mb-3">
           Launch Optimization
         </h2>
-        <p className="text-sm text-vercel-700 dark:text-vercel-300">
-          Test multiple optimization strategies in parallel
+        <p className="text-vercel-600 dark:text-vercel-400 max-w-2xl mx-auto">
+          Describe your database performance issue and select optimization strategies
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-8 max-w-4xl mx-auto">
         {/* Problem Description */}
         <div>
           <label
@@ -108,7 +114,7 @@ export default function UniverseSpawner({ onOptimize, loading }) {
             value={problemDescription}
             onChange={(e) => setProblemDescription(e.target.value)}
             placeholder="e.g., Slow queries on users table with email lookups taking over 200ms..."
-            className="vercel-textarea h-24"
+            className="vercel-textarea h-40"
             disabled={loading}
             aria-required="true"
             aria-describedby={error ? 'problem-error' : undefined}
@@ -192,29 +198,31 @@ export default function UniverseSpawner({ onOptimize, loading }) {
         </AnimatePresence>
 
         {/* Launch Button */}
-        <button
-          type="submit"
-          disabled={loading}
-          className="vercel-btn w-full"
-          aria-busy={loading}
-        >
-          {loading ? (
-            <div className="flex items-center gap-2">
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
-                aria-hidden="true"
-              />
-              <span>Launching...</span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <Play className="w-4 h-4" aria-hidden="true" />
-              <span>Launch Optimization</span>
-            </div>
-          )}
-        </button>
+        <div className="flex justify-center">
+          <button
+            type="submit"
+            disabled={loading}
+            className="vercel-btn px-12 py-4 text-lg font-semibold"
+            aria-busy={loading}
+          >
+            {loading ? (
+              <div className="flex items-center gap-3">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                  className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                  aria-hidden="true"
+                />
+                <span>Launching...</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <Play className="w-5 h-5" aria-hidden="true" />
+                <span>Launch Optimization</span>
+              </div>
+            )}
+          </button>
+        </div>
 
         {/* Selected Count */}
         {selectedStrategies.length > 0 && (
@@ -223,17 +231,6 @@ export default function UniverseSpawner({ onOptimize, loading }) {
           </div>
         )}
       </form>
-
-      {/* Info Box */}
-      <div className="mt-6 p-4 bg-vercel-50 dark:bg-vercel-800/50 border border-vercel-200 dark:border-vercel-700 rounded-vercel">
-        <div className="flex items-start gap-2">
-          <Info className="w-4 h-4 text-vercel-600 dark:text-vercel-400 flex-shrink-0 mt-0.5" />
-          <div className="text-xs text-vercel-700 dark:text-vercel-300">
-            <p className="font-medium text-vercel-900 dark:text-vercel-50 mb-1">How it works</p>
-            <p>We create instant zero-copy database forks, deploy AI agents to test each strategy, and identify the best optimization for your use case.</p>
-          </div>
-        </div>
-      </div>
     </motion.section>
   );
 }

@@ -5,6 +5,8 @@ import UniverseSpawner from './components/UniverseSpawner';
 import UniverseCard from './components/UniverseCard';
 import PerformanceChart from './components/PerformanceChart';
 import CostCalculator from './components/CostCalculator';
+import HowItWorks from './components/HowItWorks';
+import ExamplePrompts from './components/ExamplePrompts';
 import Toast from './components/Toast';
 import ThemeToggle from './components/ThemeToggle';
 import HistoryPanel from './components/HistoryPanel';
@@ -30,6 +32,7 @@ function App() {
   const [showResults, setShowResults] = useState(false);
   const [winner, setWinner] = useState(null);
   const [toasts, setToasts] = useState([]);
+  const [selectedPrompt, setSelectedPrompt] = useState('');
 
   // Toast helpers
   const addToast = (type, title, message) => {
@@ -252,9 +255,24 @@ function App() {
           </motion.div>
         </div>
 
+        {/* How It Works Section */}
+        <div className="max-w-7xl mx-auto mb-12">
+          <HowItWorks />
+        </div>
+
+        {/* Example Prompts Section */}
+        <div className="max-w-7xl mx-auto mb-12">
+          <ExamplePrompts onSelectPrompt={setSelectedPrompt} />
+        </div>
+
         {/* Universe Spawner */}
-        <div className="max-w-4xl mx-auto mb-12">
-          <UniverseSpawner onOptimize={handleOptimize} loading={loading} />
+        <div className="max-w-7xl mx-auto mb-12">
+          <UniverseSpawner
+            onOptimize={handleOptimize}
+            loading={loading}
+            selectedPrompt={selectedPrompt}
+            onPromptChange={setSelectedPrompt}
+          />
         </div>
 
         {/* Streaming Logs */}
@@ -284,7 +302,7 @@ function App() {
               transition={{ duration: 0.3 }}
             >
               {/* Results Header */}
-              <div className="max-w-6xl mx-auto mb-8">
+              <div className="max-w-7xl mx-auto mb-8">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-2xl font-semibold text-vercel-900 dark:text-vercel-50">
                     Optimization Results
@@ -302,7 +320,7 @@ function App() {
               </div>
 
               {/* Universe Cards Grid */}
-              <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
+              <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
                 {universes.map((universe, index) => (
                   <UniverseCard
                     key={universe.id}
@@ -314,7 +332,7 @@ function App() {
               </div>
 
               {/* Charts Section */}
-              <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="vercel-card p-6">
                   <h3 className="text-lg font-semibold text-vercel-900 dark:text-vercel-50 mb-4">
                     Performance Comparison
@@ -338,65 +356,6 @@ function App() {
           )}
         </AnimatePresence>
 
-        {/* Features Section - Only show when no results */}
-        {!showResults && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="max-w-6xl mx-auto mt-20"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <motion.div
-                className="vercel-card p-6"
-                whileHover={{ y: -4 }}
-                transition={{ duration: 0.2 }}
-              >
-                <div className="w-10 h-10 bg-vercel-100/70 dark:bg-vercel-800/50 backdrop-blur-xl rounded-vercel flex items-center justify-center mb-4 border border-vercel-200/30 dark:border-vercel-700/30">
-                  <Zap className="w-5 h-5 text-vercel-900 dark:text-vercel-50" />
-                </div>
-                <h3 className="text-lg font-semibold text-vercel-900 dark:text-vercel-50 mb-2">
-                  Instant Forks
-                </h3>
-                <p className="text-sm text-vercel-700 dark:text-vercel-300">
-                  Zero-copy database forks in ~1 second using Tiger Cloud. Test optimizations without affecting production.
-                </p>
-              </motion.div>
-
-              <motion.div
-                className="vercel-card p-6"
-                whileHover={{ y: -4 }}
-                transition={{ duration: 0.2 }}
-              >
-                <div className="w-10 h-10 bg-vercel-100/70 dark:bg-vercel-800/50 backdrop-blur-xl rounded-vercel flex items-center justify-center mb-4 border border-vercel-200/30 dark:border-vercel-700/30">
-                  <Database className="w-5 h-5 text-vercel-900 dark:text-vercel-50" />
-                </div>
-                <h3 className="text-lg font-semibold text-vercel-900 dark:text-vercel-50 mb-2">
-                  AI-Powered Agents
-                </h3>
-                <p className="text-sm text-vercel-700 dark:text-vercel-300">
-                  Four specialized agents compete to find the best optimization: indexes, queries, caching, and schema.
-                </p>
-              </motion.div>
-
-              <motion.div
-                className="vercel-card p-6"
-                whileHover={{ y: -4 }}
-                transition={{ duration: 0.2 }}
-              >
-                <div className="w-10 h-10 bg-vercel-100/70 dark:bg-vercel-800/50 backdrop-blur-xl rounded-vercel flex items-center justify-center mb-4 border border-vercel-200/30 dark:border-vercel-700/30">
-                  <DollarSign className="w-5 h-5 text-vercel-900 dark:text-vercel-50" />
-                </div>
-                <h3 className="text-lg font-semibold text-vercel-900 dark:text-vercel-50 mb-2">
-                  2,375x Cost Savings
-                </h3>
-                <p className="text-sm text-vercel-700 dark:text-vercel-300">
-                  Save thousands compared to traditional approaches. Test in parallel for faster results at lower cost.
-                </p>
-              </motion.div>
-            </div>
-          </motion.div>
-        )}
       </main>
 
       {/* Footer */}
