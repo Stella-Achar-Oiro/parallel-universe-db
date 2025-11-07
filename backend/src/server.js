@@ -1,10 +1,22 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import optimizeRouter from './routes/optimize.js';
 
-// Load environment variables
-dotenv.config();
+// Get directory name in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Load environment variables from root .env file
+dotenv.config({ path: join(__dirname, '../../.env') });
+
+// Debug: Log environment variables
+console.log('[Server] Environment variables loaded:');
+console.log(`[Server] TIGER_SERVICE_ID: ${process.env.TIGER_SERVICE_ID}`);
+console.log(`[Server] TIGER_CLI_AVAILABLE: ${process.env.TIGER_CLI_AVAILABLE}`);
+console.log(`[Server] DATABASE_URL: ${process.env.DATABASE_URL ? 'Set' : 'Not set'}`);
 
 const app = express();
 const PORT = process.env.PORT || 3000;

@@ -24,9 +24,9 @@ router.post('/', async (req, res) => {
     console.log('[Optimize] Starting parallel universe optimization...');
     console.log('[Optimize] Problem:', problemDescription);
     console.log('[Optimize] Strategies:', strategies);
+    console.log('[Optimize] Mode: Sequential (free tier compatible)');
 
-    // Step 1: Create forks for each strategy (in parallel)
-    const forkPromises = [];
+    // Step 1: Run agents sequentially to work with free tier limits
     const universeNames = ['alpha', 'beta', 'gamma', 'delta'];
     const strategyMap = {
       'index': IndexAgent,
@@ -35,91 +35,100 @@ router.post('/', async (req, res) => {
       'schema': SchemaAgent
     };
 
-    // Create forks
     const selectedStrategies = strategies.slice(0, 4);
-    const forks = [];
+    const universes = [];
 
+    // Run each agent sequentially: create fork → run agent → delete fork → repeat
     for (let i = 0; i < selectedStrategies.length; i++) {
       const strategy = selectedStrategies[i];
       const universeName = universeNames[i];
+      const symbol = getUniverseSymbol(universeName);
+      let fork = null;
+      let agent = null;
 
       try {
-        console.log(`[Optimize] Creating fork for ${universeName} (${strategy})...`);
-        const fork = await tigerService.createFork(`universe-${universeName}`);
-        forks.push({
-          fork,
-          strategy,
-          universeName,
-          symbol: getUniverseSymbol(universeName)
-        });
-      } catch (error) {
-        console.error(`[Optimize] Error creating fork for ${universeName}:`, error);
-      }
-    }
+        // Step A: Create fork
+        console.log(`\n[Optimize] === Universe ${universeName.toUpperCase()} (${strategy}) ===`);
+        console.log(`[Optimize] Creating fork for ${universeName}...`);
+        fork = await tigerService.createFork(`universe-${universeName}`);
 
-    console.log(`[Optimize] Created ${forks.length} forks successfully`);
+        if (fork.isDemoMode) {
+          console.log(`[Optimize] Running in demo mode (using main database)`);
+        } else {
+          console.log(`[Optimize] Fork created: ${fork.id}`);
+        }
 
-    // Step 2: Run agents in parallel
-    const agentPromises = forks.map(async ({ fork, strategy, universeName, symbol }) => {
-      const AgentClass = strategyMap[strategy];
-      const agent = new AgentClass(fork.connectionString, fork.id);
+        // Step B: Run agent
+        console.log(`[Optimize] Running ${strategy} agent...`);
+        const AgentClass = strategyMap[strategy];
+        agent = new AgentClass(fork.connectionString, fork.id);
 
-      try {
-        console.log(`[Optimize] Running ${strategy} agent on ${universeName}...`);
         const result = await agent.optimize(problemDescription);
-
-        // Clean up agent resources
         await agent.cleanup();
 
-        return {
+        console.log(`[Optimize] ${universeName} completed: ${result.improvement}% improvement`);
+
+        universes.push({
           id: universeName,
           symbol,
           ...result,
           forkId: fork.id
-        };
+        });
+
+        // Step C: Delete fork immediately (unless in demo mode)
+        if (!fork.isDemoMode) {
+          console.log(`[Optimize] Deleting fork ${fork.id}...`);
+          await tigerService.deleteFork(fork.id);
+          console.log(`[Optimize] Fork ${fork.id} deleted successfully`);
+        }
+
       } catch (error) {
-        console.error(`[Optimize] Error running ${strategy} agent:`, error);
+        console.error(`[Optimize] Error in ${universeName}:`, error);
 
-        await agent.cleanup();
+        // Clean up agent if it was created
+        if (agent) {
+          try {
+            await agent.cleanup();
+          } catch (cleanupError) {
+            console.error(`[Optimize] Error cleaning up agent:`, cleanupError);
+          }
+        }
 
-        return {
+        // Try to clean up fork on error (if it exists and not demo mode)
+        if (fork && !fork.isDemoMode) {
+          try {
+            console.log(`[Optimize] Cleaning up fork ${fork.id} after error...`);
+            await tigerService.deleteFork(fork.id);
+            console.log(`[Optimize] Fork ${fork.id} cleaned up`);
+          } catch (cleanupError) {
+            console.error(`[Optimize] Failed to cleanup fork ${fork.id}:`, cleanupError);
+          }
+        }
+
+        universes.push({
           id: universeName,
           symbol,
-          agent: AgentClass.name,
-          forkId: fork.id,
+          agent: strategy,
+          forkId: fork?.id || 'unknown',
           status: 'failed',
           error: error.message,
           improvement: 0,
           executionTime: -1
-        };
+        });
       }
-    });
+    }
 
-    const universes = await Promise.all(agentPromises);
+    console.log('\n[Optimize] All agents completed');
 
-    console.log('[Optimize] All agents completed');
-
-    // Step 3: Determine winner
+    // Step 2: Determine winner
     const winner = universes.reduce((best, current) =>
       current.improvement > best.improvement ? current : best
     );
 
     console.log(`[Optimize] Winner: ${winner.id} with ${winner.improvement}% improvement`);
 
-    // Step 4: Calculate cost savings
-    const costSavings = calculateCostSavings(forks.length);
-
-    // Step 5: Clean up forks (in background - don't wait)
-    setTimeout(async () => {
-      for (const { fork } of forks) {
-        try {
-          await tigerService.deleteFork(fork.id);
-          console.log(`[Optimize] Cleaned up fork ${fork.id}`);
-        } catch (error) {
-          console.error(`[Optimize] Error cleaning up fork ${fork.id}:`, error);
-        }
-      }
-    }, 60000); // Clean up after 1 minute
+    // Step 3: Calculate cost savings
+    const costSavings = calculateCostSavings(selectedStrategies.length);
 
     // Return results
     res.json({

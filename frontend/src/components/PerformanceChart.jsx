@@ -27,17 +27,12 @@ export default function PerformanceChart({ universes }) {
   }
 
   return (
-    <motion.section
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 }}
-      className="bg-gray-800 rounded-lg p-6 border border-gray-700"
       aria-labelledby="performance-chart-title"
     >
-      <h2 id="performance-chart-title" className="text-2xl font-bold mb-6">
-        Performance Comparison
-      </h2>
-
       <div className="mb-6">
         <ResponsiveContainer width="100%" height={300}>
           <BarChart
@@ -47,36 +42,37 @@ export default function PerformanceChart({ universes }) {
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
             <XAxis
               dataKey="name"
-              stroke="#9CA3AF"
-              tick={{ fill: '#9CA3AF' }}
+              stroke="#a1a1aa"
+              tick={{ fill: '#a1a1aa' }}
             />
             <YAxis
-              stroke="#9CA3AF"
-              tick={{ fill: '#9CA3AF' }}
-              label={{ value: 'Time (ms)', angle: -90, position: 'insideLeft', fill: '#9CA3AF' }}
+              stroke="#a1a1aa"
+              tick={{ fill: '#a1a1aa' }}
+              label={{ value: 'Time (ms)', angle: -90, position: 'insideLeft', fill: '#a1a1aa' }}
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: '#1F2937',
-                border: '1px solid #374151',
-                borderRadius: '0.5rem',
-                color: '#fff'
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                border: '1px solid rgba(228, 228, 231, 0.5)',
+                borderRadius: '8px',
+                color: '#18181b',
+                backdropFilter: 'blur(12px)'
               }}
-              cursor={{ fill: 'rgba(255, 255, 255, 0.1)' }}
+              cursor={{ fill: 'rgba(0, 112, 243, 0.1)' }}
             />
             <Legend
-              wrapperStyle={{ paddingTop: '20px' }}
+              wrapperStyle={{ paddingTop: '20px', color: '#52525b' }}
               iconType="circle"
             />
             <Bar
               dataKey="baseline"
-              fill="#6B7280"
+              fill="#a1a1aa"
               name="Baseline"
               radius={[4, 4, 0, 0]}
             />
             <Bar
               dataKey="optimized"
-              fill="#3B82F6"
+              fill="#0070f3"
               name="Optimized"
               radius={[4, 4, 0, 0]}
             />
@@ -88,27 +84,27 @@ export default function PerformanceChart({ universes }) {
       <div className="overflow-x-auto">
         <table className="w-full text-sm" role="table" aria-label="Performance comparison data">
           <thead>
-            <tr className="border-b border-gray-700">
-              <th scope="col" className="text-left py-2 px-3">Universe</th>
-              <th scope="col" className="text-left py-2 px-3">Agent</th>
-              <th scope="col" className="text-right py-2 px-3">Baseline</th>
-              <th scope="col" className="text-right py-2 px-3">Optimized</th>
-              <th scope="col" className="text-right py-2 px-3">Improvement</th>
+            <tr className="border-b border-vercel-200 dark:border-vercel-700">
+              <th scope="col" className="text-left py-3 px-3 font-medium text-vercel-900 dark:text-vercel-50">Universe</th>
+              <th scope="col" className="text-left py-3 px-3 font-medium text-vercel-900 dark:text-vercel-50">Agent</th>
+              <th scope="col" className="text-right py-3 px-3 font-medium text-vercel-900 dark:text-vercel-50">Baseline</th>
+              <th scope="col" className="text-right py-3 px-3 font-medium text-vercel-900 dark:text-vercel-50">Optimized</th>
+              <th scope="col" className="text-right py-3 px-3 font-medium text-vercel-900 dark:text-vercel-50">Improvement</th>
             </tr>
           </thead>
           <tbody>
             {chartData.map((data, index) => (
               <tr
                 key={index}
-                className="border-b border-gray-700 hover:bg-gray-700/50"
+                className="border-b border-vercel-200/50 dark:border-vercel-700/50 hover:bg-vercel-50/50 dark:hover:bg-vercel-800/30 transition-colors"
               >
-                <td className="py-2 px-3">{data.name}</td>
-                <td className="py-2 px-3 text-gray-400">{data.agent}</td>
-                <td className="py-2 px-3 text-right text-gray-400">{data.baseline}ms</td>
-                <td className="py-2 px-3 text-right text-blue-400 font-semibold">
+                <td className="py-3 px-3 font-medium text-vercel-900 dark:text-vercel-50">{data.name}</td>
+                <td className="py-3 px-3 text-vercel-700 dark:text-vercel-300">{data.agent}</td>
+                <td className="py-3 px-3 text-right text-vercel-700 dark:text-vercel-300">{data.baseline}ms</td>
+                <td className="py-3 px-3 text-right text-accent font-semibold">
                   {data.optimized}ms
                 </td>
-                <td className="py-2 px-3 text-right text-green-400 font-semibold">
+                <td className="py-3 px-3 text-right text-emerald-600 dark:text-emerald-400 font-semibold">
                   +{data.improvement}%
                 </td>
               </tr>
@@ -119,27 +115,27 @@ export default function PerformanceChart({ universes }) {
 
       {/* Summary */}
       <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-gray-900 rounded p-4">
-          <div className="text-sm text-gray-400 mb-1">Best Improvement</div>
-          <div className="text-2xl font-bold text-green-400">
+        <div className="metric-card">
+          <div className="text-xs text-vercel-700 dark:text-vercel-300 mb-2">Best Improvement</div>
+          <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
             +{Math.max(...chartData.map(d => d.improvement))}%
           </div>
         </div>
 
-        <div className="bg-gray-900 rounded p-4">
-          <div className="text-sm text-gray-400 mb-1">Average Improvement</div>
-          <div className="text-2xl font-bold text-blue-400">
+        <div className="metric-card">
+          <div className="text-xs text-vercel-700 dark:text-vercel-300 mb-2">Average Improvement</div>
+          <div className="text-2xl font-bold text-accent">
             +{Math.round(chartData.reduce((sum, d) => sum + d.improvement, 0) / chartData.length)}%
           </div>
         </div>
 
-        <div className="bg-gray-900 rounded p-4">
-          <div className="text-sm text-gray-400 mb-1">Fastest Query</div>
-          <div className="text-2xl font-bold text-purple-400">
+        <div className="metric-card">
+          <div className="text-xs text-vercel-700 dark:text-vercel-300 mb-2">Fastest Query</div>
+          <div className="text-2xl font-bold text-vercel-900 dark:text-vercel-50">
             {Math.min(...chartData.map(d => d.optimized))}ms
           </div>
         </div>
       </div>
-    </motion.section>
+    </motion.div>
   );
 }

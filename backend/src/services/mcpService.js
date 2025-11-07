@@ -6,9 +6,12 @@ import Anthropic from '@anthropic-ai/sdk';
  */
 class MCPService {
   constructor() {
-    this.client = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY
-    });
+    this.client = null;
+    if (process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY !== 'your-anthropic-api-key') {
+      this.client = new Anthropic({
+        apiKey: process.env.ANTHROPIC_API_KEY
+      });
+    }
   }
 
   /**
@@ -17,6 +20,12 @@ class MCPService {
    * @returns {Promise<string>} Relevant documentation and recommendations
    */
   async searchPostgresDocs(query) {
+    // If no API key, return fallback recommendations
+    if (!this.client) {
+      console.log('[MCP] No Anthropic API key configured, using fallback logic');
+      return 'Using rule-based optimization strategies.';
+    }
+
     try {
       const response = await this.client.messages.create({
         model: 'claude-3-5-sonnet-20241022',
@@ -50,6 +59,15 @@ Keep response under 300 words.`
    * @returns {Promise<Object>} Analysis and suggestions
    */
   async analyzeQueryPlan(queryPlan, originalQuery) {
+    if (!this.client) {
+      return {
+        bottlenecks: ['API key not configured'],
+        recommendations: ['Using rule-based optimization'],
+        alternativeQuery: null,
+        estimatedImprovement: 0
+      };
+    }
+
     try {
       const response = await this.client.messages.create({
         model: 'claude-3-5-sonnet-20241022',
@@ -108,6 +126,10 @@ Format as JSON with keys: bottlenecks (array), recommendations (array), alternat
    * @returns {Promise<Array>} Array of index recommendations
    */
   async recommendIndexes(tableName, tableStats, commonQueries) {
+    if (!this.client) {
+      return [];
+    }
+
     try {
       const response = await this.client.messages.create({
         model: 'claude-3-5-sonnet-20241022',
@@ -160,6 +182,14 @@ Format as JSON array with keys: indexType, columns, createStatement, benefit, tr
    * @returns {Promise<Object>} Rewrite suggestions
    */
   async suggestQueryRewrite(originalQuery, context = {}) {
+    if (!this.client) {
+      return {
+        optimizedQuery: originalQuery,
+        explanation: 'Using rule-based query optimization',
+        improvement: 0
+      };
+    }
+
     try {
       const response = await this.client.messages.create({
         model: 'claude-3-5-sonnet-20241022',

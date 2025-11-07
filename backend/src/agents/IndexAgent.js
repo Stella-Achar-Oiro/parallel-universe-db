@@ -13,7 +13,7 @@ class IndexAgent {
     this.forkId = forkId;
     this.pool = new Pool({
       connectionString: forkConnectionString,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+      ssl: { rejectUnauthorized: false } // Disable SSL verification for Tiger Cloud forks
     });
     this.results = [];
     this.appliedChanges = [];
@@ -113,7 +113,7 @@ class IndexAgent {
       const tableStatsResult = await client.query(`
         SELECT
           schemaname,
-          tablename,
+          relname as tablename,
           n_tup_ins + n_tup_upd + n_tup_del as modifications,
           n_live_tup as live_tuples,
           n_dead_tup as dead_tuples,
@@ -129,7 +129,7 @@ class IndexAgent {
       const missingIndexesResult = await client.query(`
         SELECT
           schemaname,
-          tablename,
+          relname as tablename,
           seq_scan,
           idx_scan,
           n_live_tup,

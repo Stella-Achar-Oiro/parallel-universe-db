@@ -1,17 +1,90 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import confetti from 'canvas-confetti';
 import UniverseSpawner from './components/UniverseSpawner';
 import UniverseCard from './components/UniverseCard';
 import PerformanceChart from './components/PerformanceChart';
 import CostCalculator from './components/CostCalculator';
+import Toast from './components/Toast';
+import ThemeToggle from './components/ThemeToggle';
+import HistoryPanel from './components/HistoryPanel';
+import StreamingLogs from './components/StreamingLogs';
 import { useOptimization } from './hooks/useOptimization';
-import { Sparkles, Github, ExternalLink } from 'lucide-react';
+import { useOptimizationHistory } from './hooks/useOptimizationHistory';
+import { useStreamingLogs } from './hooks/useStreamingLogs';
+import {
+  Sparkles,
+  Github,
+  ExternalLink,
+  Zap,
+  Database,
+  DollarSign,
+  Trophy
+} from 'lucide-react';
 
 function App() {
   const { optimize, promote, loading, error, results } = useOptimization();
+  const { addToHistory } = useOptimizationHistory();
+  const { logs, isActive, addLog, startStreaming, stopStreaming } = useStreamingLogs();
   const [universes, setUniverses] = useState([]);
   const [showResults, setShowResults] = useState(false);
   const [winner, setWinner] = useState(null);
+  const [toasts, setToasts] = useState([]);
+
+  // Toast helpers
+  const addToast = (type, title, message) => {
+    const id = Date.now();
+    setToasts(prev => [...prev, { id, type, title, message }]);
+    setTimeout(() => removeToast(id), 5000);
+  };
+
+  const removeToast = (id) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  };
+
+  const triggerConfetti = () => {
+    const count = 200;
+    const defaults = {
+      origin: { y: 0.7 }
+    };
+
+    function fire(particleRatio, opts) {
+      confetti({
+        ...defaults,
+        ...opts,
+        particleCount: Math.floor(count * particleRatio),
+        spread: 90,
+        colors: ['#0070f3', '#000000', '#10b981', '#f59e0b']
+      });
+    }
+
+    fire(0.25, {
+      spread: 26,
+      startVelocity: 55,
+    });
+
+    fire(0.2, {
+      spread: 60,
+    });
+
+    fire(0.35, {
+      spread: 100,
+      decay: 0.91,
+      scalar: 0.8
+    });
+
+    fire(0.1, {
+      spread: 120,
+      startVelocity: 25,
+      decay: 0.92,
+      scalar: 1.2
+    });
+
+    fire(0.1, {
+      spread: 120,
+      startVelocity: 45,
+    });
+  };
 
   // Handle optimization
   const handleOptimize = async (problemDescription, strategies) => {
@@ -19,16 +92,61 @@ function App() {
     setUniverses([]);
     setWinner(null);
 
+    // Start streaming logs
+    startStreaming();
+    addLog('System', 'Starting optimization...', 'info');
+
     try {
+      // Simulate agent logs (in real implementation, these would come from backend via WebSocket)
+      const agentNames = strategies.map(s => {
+        const nameMap = { index: 'IndexAgent', query: 'QueryAgent', cache: 'CacheAgent', schema: 'SchemaAgent' };
+        return nameMap[s];
+      });
+
+      // Initial logs
+      agentNames.forEach(agent => {
+        setTimeout(() => addLog(agent, 'Analyzing database schema...'), Math.random() * 500);
+        setTimeout(() => addLog(agent, 'Examining pg_stat_statements...'), Math.random() * 1000 + 500);
+      });
+
       const result = await optimize(problemDescription, strategies);
 
       if (result && result.universes) {
+        // Add completion logs
+        result.universes.forEach((universe, idx) => {
+          setTimeout(() => {
+            if (universe.status === 'complete') {
+              addLog(universe.agent, `✓ Optimization complete: +${universe.improvement}% improvement`, 'success');
+            } else if (universe.status === 'failed') {
+              addLog(universe.agent, `✗ Optimization failed: ${universe.error}`, 'error');
+            }
+          }, idx * 200);
+        });
+
         setUniverses(result.universes);
         setWinner(result.winner);
         setShowResults(true);
+
+        // Final log
+        setTimeout(() => {
+          const winningUniverse = result.universes.find(u => u.id === result.winner);
+          if (winningUniverse) {
+            addLog('System', `🏆 Winner: ${winningUniverse.agent} with ${winningUniverse.improvement}% improvement`, 'success');
+          }
+          stopStreaming();
+        }, result.universes.length * 200 + 500);
+
+        // Add to history
+        addToHistory({
+          problemDescription,
+          winner: result.winner,
+          universes: result.universes
+        });
       }
     } catch (err) {
       console.error('Optimization error:', err);
+      addLog('System', `Error: ${err.message}`, 'error');
+      stopStreaming();
     }
   };
 
@@ -40,10 +158,22 @@ function App() {
       try {
         await promote(universe.forkId, universe.details?.appliedChanges || []);
 
-        // Show success notification
-        alert(`✅ Universe ${universe.id} successfully promoted to production!`);
+        // Trigger confetti celebration
+        triggerConfetti();
+
+        // Show success toast
+        addToast(
+          'success',
+          'Successfully Promoted!',
+          `Universe ${universe.id} optimizations are now live in production.`
+        );
       } catch (err) {
-        alert(`❌ Failed to promote: ${err.message}`);
+        // Show error toast
+        addToast(
+          'error',
+          'Promotion Failed',
+          err.message || 'An unexpected error occurred during promotion.'
+        );
       }
     };
 
@@ -52,35 +182,36 @@ function App() {
   }, [promote]);
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      {/* Skip to main content link (accessibility) */}
+    <div className="min-h-screen">
+      <Toast toasts={toasts} onClose={removeToast} />
+      <HistoryPanel />
+
       <a href="#main-content" className="skip-link">
         Skip to main content
       </a>
 
       {/* Header */}
-      <header className="border-b border-gray-800 bg-gray-900/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
+      <header className="border-b border-vercel-200/20 dark:border-vercel-700/20 sticky top-0 z-40 bg-white/50 dark:bg-vercel-900/50 backdrop-blur-2xl shadow-vercel">
+        <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Sparkles className="w-8 h-8 text-blue-400" aria-hidden="true" />
-              <div>
-                <h1 className="text-2xl font-bold">Parallel Universe Database</h1>
-                <p className="text-sm text-gray-400">
-                  AI agents optimizing databases across instant forks
-                </p>
+              <div className="w-8 h-8 bg-vercel-900/90 dark:bg-white/90 backdrop-blur-xl rounded-vercel flex items-center justify-center shadow-vercel">
+                <Sparkles className="w-4 h-4 text-white dark:text-vercel-900" aria-hidden="true" />
               </div>
+              <h1 className="text-lg font-semibold text-vercel-900 dark:text-vercel-50">
+                Parallel Universe DB
+              </h1>
             </div>
 
-            <nav aria-label="External links">
+            <nav className="flex items-center gap-2">
+              <ThemeToggle />
               <a
                 href="https://github.com/Stella-Achar-Oiro/parallel-universe-db"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
-                aria-label="View on GitHub"
+                className="inline-flex items-center gap-2 text-sm text-vercel-600 dark:text-vercel-400 hover:text-vercel-900 dark:hover:text-vercel-100 transition-colors"
               >
-                <Github className="w-5 h-5" aria-hidden="true" />
+                <Github className="w-4 h-4" />
                 <span className="hidden sm:inline">GitHub</span>
               </a>
             </nav>
@@ -89,151 +220,204 @@ function App() {
       </header>
 
       {/* Main Content */}
-      <main id="main-content" className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto space-y-8">
-          {/* Hero Section */}
+      <main id="main-content" className="container mx-auto px-6 py-12">
+        {/* Hero Section */}
+        <div className="max-w-3xl mx-auto text-center mb-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center py-8"
+            transition={{ duration: 0.5 }}
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-              What if your database existed in multiple realities?
+            <h2 className="text-4xl md:text-5xl font-semibold mb-4 text-vercel-900 dark:text-vercel-50">
+              AI-Powered Database Optimization
             </h2>
-            <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-              Spawn instant database forks, deploy AI agents to test different optimization
-              strategies, watch them compete in real-time, and promote the winner to production.
+            <p className="text-lg text-vercel-700 dark:text-vercel-300 mb-8">
+              Spawn instant database forks, test optimizations in parallel, and promote the winning strategy to production.
             </p>
+
+            <div className="flex items-center justify-center gap-6 text-sm text-vercel-700 dark:text-vercel-300">
+              <div className="flex items-center gap-2">
+                <Zap className="w-4 h-4" />
+                <span>~1 second forks</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Database className="w-4 h-4" />
+                <span>4 AI agents</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <DollarSign className="w-4 h-4" />
+                <span>2,375x savings</span>
+              </div>
+            </div>
           </motion.div>
+        </div>
 
-          {/* Universe Spawner */}
+        {/* Universe Spawner */}
+        <div className="max-w-4xl mx-auto mb-12">
           <UniverseSpawner onOptimize={handleOptimize} loading={loading} />
+        </div>
 
-          {/* Error Display */}
-          <AnimatePresence>
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="bg-red-900/20 border border-red-700 rounded-lg p-4"
-                role="alert"
-              >
-                <p className="text-red-400">Error: {error}</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
+        {/* Streaming Logs */}
+        <StreamingLogs logs={logs} isActive={isActive} />
 
-          {/* Results Section */}
-          <AnimatePresence>
-            {showResults && universes.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="space-y-8"
-              >
-                {/* Results Header */}
-                <div className="text-center">
-                  <h2 className="text-3xl font-bold mb-2">Optimization Results</h2>
-                  <p className="text-gray-400">
-                    {universes.filter(u => u.status === 'complete').length} universes completed
-                  </p>
-                </div>
+        {/* Error Display */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-4xl mx-auto mb-8"
+          >
+            <div className="vercel-card p-4 border-red-200 bg-red-50">
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          </motion.div>
+        )}
 
-                {/* Universe Cards Grid */}
-                <div className="grid md:grid-cols-2 gap-6" role="region" aria-label="Optimization results">
-                  {universes.map((universe) => (
-                    <UniverseCard
-                      key={universe.id}
-                      universe={universe}
-                      isWinner={universe.id === winner}
-                    />
-                  ))}
-                </div>
-
-                {/* Performance Chart */}
-                <PerformanceChart universes={universes} />
-
-                {/* Cost Calculator */}
-                {results?.costSavings && (
-                  <CostCalculator costSavings={results.costSavings} />
-                )}
-
-                {/* Summary */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 }}
-                  className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-lg p-8 border border-blue-700 text-center"
-                >
-                  <h3 className="text-2xl font-bold mb-4">
-                    Winner: Universe {winner?.charAt(0).toUpperCase() + winner?.slice(1)}
-                  </h3>
-                  <p className="text-gray-300 max-w-2xl mx-auto">
-                    The winning optimization has been identified and is ready to promote to
-                    production. Click the "Promote to Production" button on the winning universe
-                    to apply these changes to your main database.
-                  </p>
-                </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Features Section */}
-          {!showResults && (
+        {/* Results Section */}
+        <AnimatePresence mode="wait">
+          {showResults && universes.length > 0 && (
             <motion.div
+              key="results"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="grid md:grid-cols-3 gap-6 mt-12"
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
             >
-              <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                <div className="text-3xl mb-3">⚡</div>
-                <h3 className="text-lg font-semibold mb-2">Instant Forks</h3>
-                <p className="text-sm text-gray-400">
-                  Zero-copy database forks spawn in under 1 second. No waiting, no copying data.
+              {/* Results Header */}
+              <div className="max-w-6xl mx-auto mb-8">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-2xl font-semibold text-vercel-900 dark:text-vercel-50">
+                    Optimization Results
+                  </h3>
+                  {winner && (
+                    <span className="vercel-badge-accent inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium">
+                      <Trophy className="w-4 h-4" />
+                      Winner: Universe {winner}
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-vercel-700 dark:text-vercel-300">
+                  Compare performance improvements across parallel universes
                 </p>
               </div>
 
-              <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                <div className="text-3xl mb-3">🤖</div>
-                <h3 className="text-lg font-semibold mb-2">AI-Powered Agents</h3>
-                <p className="text-sm text-gray-400">
-                  Specialized agents test different optimization strategies using PostgreSQL expertise.
-                </p>
+              {/* Universe Cards Grid */}
+              <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
+                {universes.map((universe, index) => (
+                  <UniverseCard
+                    key={universe.id}
+                    universe={universe}
+                    isWinner={universe.id === winner}
+                    index={index}
+                  />
+                ))}
               </div>
 
-              <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                <div className="text-3xl mb-3">💰</div>
-                <h3 className="text-lg font-semibold mb-2">2,375x Cost Savings</h3>
-                <p className="text-sm text-gray-400">
-                  Pay $0.02 instead of $47.50 for testing 4 optimization strategies in parallel.
-                </p>
+              {/* Charts Section */}
+              <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="vercel-card p-6">
+                  <h3 className="text-lg font-semibold text-vercel-900 dark:text-vercel-50 mb-4">
+                    Performance Comparison
+                  </h3>
+                  <PerformanceChart universes={universes} />
+                </div>
+
+                <div className="vercel-card p-6">
+                  <h3 className="text-lg font-semibold text-vercel-900 dark:text-vercel-50 mb-4">
+                    Cost Analysis
+                  </h3>
+                  <CostCalculator costSavings={{
+                    forkCount: universes.length,
+                    traditional: (universes.length * 200).toFixed(2),
+                    agentic: "0.34",
+                    savingsMultiplier: Math.round((universes.length * 200) / 0.34)
+                  }} />
+                </div>
               </div>
             </motion.div>
           )}
-        </div>
+        </AnimatePresence>
+
+        {/* Features Section - Only show when no results */}
+        {!showResults && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="max-w-6xl mx-auto mt-20"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <motion.div
+                className="vercel-card p-6"
+                whileHover={{ y: -4 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="w-10 h-10 bg-vercel-100/70 dark:bg-vercel-800/50 backdrop-blur-xl rounded-vercel flex items-center justify-center mb-4 border border-vercel-200/30 dark:border-vercel-700/30">
+                  <Zap className="w-5 h-5 text-vercel-900 dark:text-vercel-50" />
+                </div>
+                <h3 className="text-lg font-semibold text-vercel-900 dark:text-vercel-50 mb-2">
+                  Instant Forks
+                </h3>
+                <p className="text-sm text-vercel-700 dark:text-vercel-300">
+                  Zero-copy database forks in ~1 second using Tiger Cloud. Test optimizations without affecting production.
+                </p>
+              </motion.div>
+
+              <motion.div
+                className="vercel-card p-6"
+                whileHover={{ y: -4 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="w-10 h-10 bg-vercel-100/70 dark:bg-vercel-800/50 backdrop-blur-xl rounded-vercel flex items-center justify-center mb-4 border border-vercel-200/30 dark:border-vercel-700/30">
+                  <Database className="w-5 h-5 text-vercel-900 dark:text-vercel-50" />
+                </div>
+                <h3 className="text-lg font-semibold text-vercel-900 dark:text-vercel-50 mb-2">
+                  AI-Powered Agents
+                </h3>
+                <p className="text-sm text-vercel-700 dark:text-vercel-300">
+                  Four specialized agents compete to find the best optimization: indexes, queries, caching, and schema.
+                </p>
+              </motion.div>
+
+              <motion.div
+                className="vercel-card p-6"
+                whileHover={{ y: -4 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="w-10 h-10 bg-vercel-100/70 dark:bg-vercel-800/50 backdrop-blur-xl rounded-vercel flex items-center justify-center mb-4 border border-vercel-200/30 dark:border-vercel-700/30">
+                  <DollarSign className="w-5 h-5 text-vercel-900 dark:text-vercel-50" />
+                </div>
+                <h3 className="text-lg font-semibold text-vercel-900 dark:text-vercel-50 mb-2">
+                  2,375x Cost Savings
+                </h3>
+                <p className="text-sm text-vercel-700 dark:text-vercel-300">
+                  Save thousands compared to traditional approaches. Test in parallel for faster results at lower cost.
+                </p>
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-gray-800 mt-16 py-8">
-        <div className="container mx-auto px-4 text-center text-gray-400">
-          <p>
-            Built with ❤️ for the{' '}
-            <a
-              href="https://dev.to/challenges/postgres"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-400 hover:text-blue-300 inline-flex items-center gap-1"
-            >
-              Agentic Postgres Challenge
-              <ExternalLink className="w-3 h-3" aria-hidden="true" />
-            </a>
-          </p>
-          <p className="mt-2 text-sm">
-            By Stella Achar Oiro • Powered by Tiger Cloud & Anthropic Claude
-          </p>
+      <footer className="border-t border-vercel-200/30 dark:border-vercel-700/30 mt-20 bg-white/40 dark:bg-vercel-900/40 backdrop-blur-xl">
+        <div className="container mx-auto px-6 py-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-sm text-vercel-700 dark:text-vercel-300">
+              Built for the Agentic Postgres Challenge
+            </p>
+            <div className="flex items-center gap-4">
+              <a
+                href="https://github.com/Stella-Achar-Oiro/parallel-universe-db"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-sm text-vercel-700 dark:text-vercel-300 hover:text-vercel-900 dark:hover:text-vercel-50 transition-colors"
+              >
+                <span>View on GitHub</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
+          </div>
         </div>
       </footer>
     </div>

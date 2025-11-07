@@ -1,38 +1,210 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   * {
-    @apply border-gray-700;
+    @apply border-vercel-200;
   }
 
   body {
-    @apply antialiased;
+    @apply antialiased font-sans text-vercel-900 dark:text-vercel-50;
+    background:
+      radial-gradient(circle at 20% 50%, rgba(0, 112, 243, 0.04) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(0, 112, 243, 0.03) 0%, transparent 50%),
+      linear-gradient(135deg, #fafafa 0%, #f8f9fa 50%, #fafafa 100%);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .dark body {
+    background:
+      radial-gradient(circle at 20% 50%, rgba(0, 112, 243, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(0, 112, 243, 0.06) 0%, transparent 50%),
+      linear-gradient(135deg, #09090b 0%, #18181b 50%, #09090b 100%);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+
+  h1 {
+    @apply text-4xl md:text-5xl;
+  }
+
+  h2 {
+    @apply text-3xl md:text-4xl;
+  }
+
+  h3 {
+    @apply text-2xl;
   }
 }
 
 @layer components {
+  /* Vercel-style Card - Enhanced Glassmorphism */
+  .vercel-card {
+    @apply bg-white/70 dark:bg-vercel-800/50 backdrop-blur-2xl rounded-vercel
+           border border-vercel-200/30 dark:border-vercel-700/30
+           shadow-vercel hover:shadow-vercel-md
+           transition-all duration-300 hover:border-vercel-300/50 dark:hover:border-vercel-600/50
+           hover:bg-white/85 dark:hover:bg-vercel-800/70
+           hover:-translate-y-0.5;
+  }
+
+  .vercel-card.interactive {
+    @apply cursor-pointer active:scale-[0.98];
+  }
+
+  /* Vercel Primary Button */
+  .vercel-btn {
+    @apply bg-vercel-900 hover:bg-vercel-800 dark:bg-white dark:hover:bg-vercel-100
+           text-white dark:text-vercel-900 font-medium
+           px-4 py-2 h-10 rounded-vercel transition-all duration-150
+           focus:outline-none focus:ring-2 focus:ring-vercel-900 dark:focus:ring-white focus:ring-offset-2
+           active:scale-[0.98] inline-flex items-center justify-center gap-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .vercel-btn-accent {
+    @apply bg-accent hover:bg-accent-dark text-white font-medium
+           px-4 py-2 h-10 rounded-vercel transition-all duration-150
+           focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2
+           active:scale-[0.98] inline-flex items-center justify-center gap-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Vercel Secondary Button */
+  .vercel-btn-secondary {
+    @apply bg-white hover:bg-vercel-50 text-vercel-900 font-medium
+           px-4 py-2 h-10 rounded-vercel transition-all duration-150
+           border border-vercel-200 hover:border-vercel-300
+           focus:outline-none focus:ring-2 focus:ring-vercel-900 focus:ring-offset-2
+           active:scale-[0.98] inline-flex items-center justify-center gap-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Vercel Input */
+  .vercel-input {
+    @apply w-full px-3 py-2 h-10 bg-white dark:bg-vercel-800 border border-vercel-200 dark:border-vercel-700
+           rounded-vercel focus:outline-none focus:ring-2 focus:ring-vercel-900 dark:focus:ring-white
+           transition-all duration-150 placeholder-vercel-400 dark:placeholder-vercel-500
+           text-vercel-900 dark:text-vercel-50 hover:border-vercel-300 dark:hover:border-vercel-600;
+  }
+
+  .vercel-textarea {
+    @apply w-full px-3 py-2 bg-white dark:bg-vercel-800 border border-vercel-200 dark:border-vercel-700
+           rounded-vercel focus:outline-none focus:ring-2 focus:ring-vercel-900 dark:focus:ring-white
+           transition-all duration-150 placeholder-vercel-400 dark:placeholder-vercel-500
+           text-vercel-900 dark:text-vercel-50 hover:border-vercel-300 dark:hover:border-vercel-600 resize-none;
+  }
+
+  /* Vercel Badge */
+  .vercel-badge {
+    @apply inline-flex items-center gap-1 px-2 py-1 text-xs font-medium
+           rounded-md bg-vercel-100 text-vercel-700 border border-vercel-200;
+  }
+
+  .vercel-badge-success {
+    @apply bg-emerald-50 text-emerald-700 border-emerald-200;
+  }
+
+  .vercel-badge-error {
+    @apply bg-red-50 text-red-700 border-red-200;
+  }
+
+  .vercel-badge-warning {
+    @apply bg-amber-50 text-amber-700 border-amber-200;
+  }
+
+  .vercel-badge-accent {
+    @apply bg-blue-50 text-accent border-blue-200;
+  }
+
+  /* Universe Card - Vercel style */
   .universe-card {
-    @apply bg-gray-800 rounded-lg p-6 border border-gray-700 transition-all duration-300;
+    @apply vercel-card p-6;
   }
 
-  .universe-card:hover {
-    @apply border-gray-600 shadow-lg;
+  .universe-card.winner {
+    @apply border-accent shadow-vercel-md ring-1 ring-accent/20;
   }
 
-  .btn-primary {
-    @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900;
+  /* Metric Display - Enhanced Glassmorphism */
+  .metric-card {
+    @apply bg-vercel-50/40 dark:bg-vercel-800/30 backdrop-blur-xl rounded-vercel p-4
+           border border-vercel-200/30 dark:border-vercel-700/30
+           transition-all duration-300 hover:bg-vercel-50/60 dark:hover:bg-vercel-800/40
+           hover:border-vercel-300/40 dark:hover:border-vercel-600/40
+           hover:-translate-y-0.5;
   }
 
-  .btn-secondary {
-    @apply bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-900;
+  /* Code Block - Vercel style */
+  .vercel-code {
+    @apply font-mono text-sm bg-vercel-100 px-2 py-1 rounded border border-vercel-200;
+  }
+
+  .vercel-code-block {
+    @apply font-mono text-sm bg-vercel-900 text-vercel-50 p-4 rounded-vercel
+           overflow-x-auto border border-vercel-800;
   }
 }
 
-/* Accessibility improvements */
+/* Accessibility */
 @layer utilities {
   .skip-link {
-    @apply absolute left-0 top-0 bg-blue-600 text-white px-4 py-2 -translate-y-full focus:translate-y-0 z-50;
+    @apply absolute left-4 top-4 bg-vercel-900 text-white px-4 py-2
+           -translate-y-20 focus:translate-y-0 z-50 rounded-vercel
+           font-medium shadow-vercel;
   }
+
+  /* Vercel-style gradient text */
+  .text-gradient-vercel {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-vercel-900 via-vercel-700 to-vercel-900;
+  }
+
+  /* Surface elevation */
+  .surface-1 {
+    @apply bg-white border border-vercel-200;
+  }
+
+  .surface-2 {
+    @apply bg-white border border-vercel-200 shadow-vercel-sm;
+  }
+
+  .surface-3 {
+    @apply bg-white border border-vercel-200 shadow-vercel;
+  }
+
+  /* Vercel divider */
+  .vercel-divider {
+    @apply border-t border-vercel-200;
+  }
+}
+
+/* Custom scrollbar - Vercel style */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d4d4d8;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a1a1aa;
+}
+
+/* Selection color */
+::selection {
+  background-color: rgba(0, 112, 243, 0.15);
+  color: inherit;
 }

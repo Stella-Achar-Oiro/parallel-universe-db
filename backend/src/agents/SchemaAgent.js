@@ -13,7 +13,7 @@ class SchemaAgent {
     this.forkId = forkId;
     this.pool = new Pool({
       connectionString: forkConnectionString,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+      ssl: { rejectUnauthorized: false } // Disable SSL verification for Tiger Cloud forks
     });
     this.appliedChanges = [];
   }
@@ -71,12 +71,12 @@ class SchemaAgent {
       const result = await client.query(`
         SELECT
           schemaname,
-          tablename,
-          pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) AS size,
-          pg_total_relation_size(schemaname||'.'||tablename) AS size_bytes,
+          relname as tablename,
+          pg_size_pretty(pg_total_relation_size(schemaname||'.'||relname)) AS size,
+          pg_total_relation_size(schemaname||'.'||relname) AS size_bytes,
           n_live_tup as row_count
         FROM pg_stat_user_tables
-        ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC
+        ORDER BY pg_total_relation_size(schemaname||'.'||relname) DESC
         LIMIT 10
       `);
 

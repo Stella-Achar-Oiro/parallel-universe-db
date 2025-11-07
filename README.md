@@ -12,11 +12,12 @@ Spawn instant database forks (parallel universes), deploy AI agents to each univ
 
 ## 🎯 What Makes This Special
 
-- **Zero-Copy Forks**: Instant database forks without copying data (~1 second vs 30+ minutes)
-- **AI Agent Competition**: 4 specialized agents compete in parallel to find the best optimization
+- **Zero-Copy Forks**: Instant database forks without copying data (~2 seconds vs 30+ minutes)
+- **AI Agent Competition**: 4 specialized agents test different optimizations
 - **Real-Time Visualization**: Watch optimizations happen live with beautiful animations
 - **2,375x Cost Savings**: Pay $0.02 instead of $47.50 for testing 4 strategies
 - **One-Click Promotion**: Apply winning optimizations to production instantly
+- **Free Tier Compatible**: Sequential execution mode works within Tiger Cloud free tier limits
 - **Full Accessibility**: WCAG AA compliant with keyboard navigation and screen reader support
 
 ## 🚀 Quick Start
@@ -64,10 +65,18 @@ psql parallel_universe_db < database/seed.sql
 cp .env.example .env
 
 # Edit .env and add:
-# - DATABASE_URL: Your PostgreSQL connection string
-# - ANTHROPIC_API_KEY: Your Anthropic API key
-# - TIGER_SERVICE_ID: (Optional) Your Tiger Cloud service ID
+# - DATABASE_URL: Your PostgreSQL connection string with password
+#   Format: postgresql://username:password@host:port/database
+# - ANTHROPIC_API_KEY: Your Anthropic API key (optional, has fallback)
+# - TIGER_SERVICE_ID: Your Tiger Cloud service ID (optional, for real forks)
+# - TIGER_CLI_AVAILABLE: Set to 'true' if Tiger CLI installed, 'false' for demo mode
 ```
+
+**Important Notes:**
+- **Tiger Cloud Setup**: If using real forks, install [Tiger CLI](https://docs.timescale.com/use-timescale/latest/services/create-a-service/#fork-a-service) and set `TIGER_CLI_AVAILABLE=true`
+- **Free Tier**: System automatically runs in sequential mode (one fork at a time) to stay within free tier limits
+- **Demo Mode**: Set `TIGER_CLI_AVAILABLE=false` to test with main database only (no forks created)
+- **Password Format**: Tiger CLI saves fork passwords to `~/.pgpass` automatically
 
 ### Running the Application
 
@@ -122,10 +131,24 @@ frontend/
 
 1. **Describe Problem**: User enters a database performance issue
 2. **Select Strategies**: Choose which optimization approaches to test (Index, Query, Cache, Schema)
-3. **Spawn Universes**: System creates 4 instant zero-copy database forks
-4. **Run Agents**: AI agents compete in parallel, each testing different optimizations
+3. **Spawn Universes**: System creates zero-copy database forks (~2 seconds each)
+4. **Run Agents**: AI agents test different optimizations sequentially on real Tiger Cloud forks
 5. **Compare Results**: Real-time visualization shows performance improvements
 6. **Promote Winner**: One-click promotion of best optimization to production
+
+### Execution Modes
+
+**Sequential Mode (Default - Free Tier Compatible)**
+- Creates one fork at a time: Create → Optimize → Delete → Repeat
+- Total time: ~8-10 minutes for 4 agents (2-2.5 min per agent)
+- Stays within Tiger Cloud free tier limit (2 services max)
+- Each agent gets a real isolated fork with proper password authentication
+
+**Parallel Mode (Paid Tier)**
+- Creates all 4 forks simultaneously
+- Total time: ~2-3 minutes (all agents run at once)
+- Requires Tiger Cloud paid tier (allows unlimited concurrent forks)
+- Not currently implemented - available for future enhancement
 
 ## 🤖 AI Agents
 

@@ -13,7 +13,7 @@ class QueryAgent {
     this.forkId = forkId;
     this.pool = new Pool({
       connectionString: forkConnectionString,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+      ssl: { rejectUnauthorized: false } // Disable SSL verification for Tiger Cloud forks
     });
     this.optimizations = [];
   }
