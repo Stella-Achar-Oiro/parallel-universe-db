@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: parallel-universe-db-api
+    runtime: node
+    region: oregon
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: TIGER_SERVICE_ID
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: TIGER_CLI_AVAILABLE
+        value: "true"
+      - key: ANTHROPIC_API_KEY
+        sync: false
+
+  - type: web
+    name: parallel-universe-db-frontend
+    runtime: node
+    region: oregon
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: VITE_API_URL
+        sync: false
