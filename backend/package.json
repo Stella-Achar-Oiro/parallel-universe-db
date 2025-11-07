@@ -4,9 +4,13 @@
   "description": "Backend for Parallel Universe Database - AI agents optimizing across database forks",
   "main": "src/server.js",
   "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "start": "node src/server.js",
-    "dev": "node --watch src/server.js"
+    "dev": "node --watch src/server.js",
+    "build": "echo 'No build step required for backend'"
   },
   "keywords": ["postgres", "ai", "agents", "database", "optimization"],
   "author": "Stella Achar Oiro",
