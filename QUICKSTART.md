@@ -1,4 +1,4 @@
-# 🚀 Quick Start Guide
+#  Quick Start Guide
 
 Get Parallel Universe Database running in 5 minutes!
 
@@ -112,17 +112,17 @@ You should see the Parallel Universe Database interface!
    ```
 
 2. **Select All Strategies:**
-   - ✅ Index Optimization
-   - ✅ Query Rewriting
-   - ✅ Caching Strategy
-   - ✅ Schema Optimization
+   -  Index Optimization
+   -  Query Rewriting
+   -  Caching Strategy
+   -  Schema Optimization
 
 3. **Click "Launch Parallel Universes"**
 
 4. **Watch the magic happen:**
    - 4 universes spawn instantly
    - AI agents compete in real-time
-   - Winner gets crowned with 🏆
+   - Winner gets crowned with 
    - See performance improvements and cost savings
 
 ## Troubleshooting
@@ -170,17 +170,17 @@ You should see the Parallel Universe Database interface!
 
 ## Next Steps
 
-✅ **Explore the code:**
+**Explore the code:**
 - Backend agents: `backend/src/agents/`
 - Frontend components: `frontend/src/components/`
 - Database schema: `database/schema.sql`
 
-✅ **Customize:**
+ **Customize:**
 - Add your own database schema
 - Create custom agents
 - Modify optimization strategies
 
-✅ **Deploy:**
+ **Deploy:**
 - Frontend: Deploy to Vercel
 - Backend: Deploy to Railway or Heroku
 - Database: Use Tiger Cloud for production forks
@@ -193,4 +193,4 @@ You should see the Parallel Universe Database interface!
 
 ---
 
-**Happy optimizing! 🌌**
+**Happy optimizing! **
