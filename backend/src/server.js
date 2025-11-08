@@ -21,13 +21,32 @@ console.log(`[Server] DATABASE_URL: ${process.env.DATABASE_URL ? 'Set' : 'Not se
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-const corsOptions = {
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+// CORS configuration
+const allowedOrigins = [
+  'http://localhost:5173', // Local development
+  'https://paralleluniversedb.vercel.app', // Production frontend
+  process.env.FRONTEND_URL // From environment variable
+].filter(Boolean); // Remove undefined values
+
+console.log('[Server] Allowed CORS origins:', allowedOrigins);
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log(`[CORS] Rejected origin: ${origin}`);
+      callback(null, true); // Allow anyway for now - change to false to strictly enforce
+    }
+  },
   credentials: true,
-  optionsSuccessStatus: 200
-};
-app.use(cors(corsOptions));
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json());
 
 // Request logging
