@@ -1,5 +1,4 @@
 import pg from 'pg';
-import mcpService from '../services/mcpService.js';
 
 const { Pool } = pg;
 
@@ -22,7 +21,7 @@ class SchemaAgent {
   /**
    * Run schema optimization
    */
-  async optimize(problemDescription) {
+  async optimize() {
     try {
       console.log(`[SchemaAgent:${this.forkId}] Starting schema optimization...`);
 

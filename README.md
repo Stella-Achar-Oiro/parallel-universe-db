@@ -25,9 +25,9 @@ Spawn instant database forks (parallel universes), deploy AI agents to each univ
 ### Prerequisites
 
 - Node.js 18+ and npm
-- PostgreSQL 14+ with pgvector extension
-- Anthropic API key (for AI agents)
-- Tiger Cloud account (optional, for production forks)
+- PostgreSQL 14+
+- Tiger Cloud account (optional, for production-scale forks)
+- **No paid APIs required!** Agents use intelligent rule-based strategies
 
 ### Installation
 
@@ -64,12 +64,11 @@ psql parallel_universe_db < database/seed.sql
 # Copy environment template
 cp .env.example .env
 
-# Edit .env and add:
-# - DATABASE_URL: Your PostgreSQL connection string with password
-#   Format: postgresql://username:password@host:port/database
-# - ANTHROPIC_API_KEY: Your Anthropic API key (optional, has fallback)
-# - TIGER_SERVICE_ID: Your Tiger Cloud service ID (optional, for real forks)
-# - TIGER_CLI_AVAILABLE: Set to 'true' if Tiger CLI installed, 'false' for demo mode
+# Edit .env and configure:
+# - DATABASE_URL: Your PostgreSQL connection string (required)
+# - TIGER_SERVICE_ID: Your Tiger Cloud service ID (optional, for production forks)
+# - TIGER_CLI_AVAILABLE: Set to 'true' if using Tiger CLI, 'false' for demo mode
+# - ANTHROPIC_API_KEY: NOT REQUIRED - agents use rule-based strategies!
 ```
 
 **Important Notes:**

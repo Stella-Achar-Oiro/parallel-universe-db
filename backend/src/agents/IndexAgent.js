@@ -1,5 +1,4 @@
 import pg from 'pg';
-import mcpService from '../services/mcpService.js';
 
 const { Pool } = pg;
 
@@ -22,21 +21,17 @@ class IndexAgent {
 
   /**
    * Run the optimization agent
-   * @param {string} problemDescription - User's description of the problem
    * @returns {Promise<Object>} Optimization results
    */
-  async optimize(problemDescription) {
+  async optimize() {
     try {
       console.log(`[IndexAgent:${this.forkId}] Starting optimization...`);
 
       // Step 1: Analyze current database state
       const analysis = await this.analyzeDatabase();
 
-      // Step 2: Get AI recommendations for indexes
-      const recommendations = await this.getIndexRecommendations(
-        problemDescription,
-        analysis
-      );
+      // Step 2: Get rule-based recommendations for indexes
+      const recommendations = await this.getIndexRecommendations(analysis);
 
       // Step 3: Benchmark current performance
       const baselineMetrics = await this.benchmarkQueries(analysis.slowQueries);
@@ -153,42 +148,53 @@ class IndexAgent {
   }
 
   /**
-   * Get AI-powered index recommendations
+   * Get rule-based index recommendations (no AI required)
    */
-  async getIndexRecommendations(problemDescription, analysis) {
-    const query = `I need to optimize database performance. ${problemDescription}
+  async getIndexRecommendations(analysis) {
+    console.log(`[IndexAgent:${this.forkId}] Using rule-based index recommendations`);
 
-Current issues:
-- ${analysis.slowQueries.length} slow queries detected
-- ${analysis.missingIndexes.length} tables with excessive sequential scans
-- Average query time: ${this.calculateAverageQueryTime(analysis.slowQueries)}ms
+    const recommendations = [];
 
-Recommend 2-3 high-impact indexes to create.`;
-
-    const guidance = await mcpService.searchPostgresDocs(query);
-
-    // Parse recommendations or use defaults
-    const recommendations = [
-      {
-        tableName: analysis.missingIndexes[0]?.tablename || 'users',
-        columnName: 'email',
-        indexType: 'btree',
-        reason: 'High sequential scan rate, likely used in WHERE clauses'
-      }
-    ];
-
-    // Add more recommendations based on table stats
-    if (analysis.tableStats.length > 0) {
-      analysis.tableStats.slice(0, 2).forEach(table => {
+    // Strategy 1: Index tables with high sequential scans
+    if (analysis.missingIndexes.length > 0) {
+      analysis.missingIndexes.slice(0, 2).forEach(table => {
         recommendations.push({
           tableName: table.tablename,
-          columnName: 'id', // Default to id for foreign key optimization
+          columnName: 'id',
           indexType: 'btree',
-          reason: `Table has ${table.live_tuples} rows with ${table.seq_scan} sequential scans`
+          reason: `High sequential scan rate (${table.seq_scan} scans), creating B-tree index on primary key`
         });
       });
     }
 
+    // Strategy 2: Index large tables based on row count
+    if (analysis.tableStats.length > 0) {
+      const largeTables = analysis.tableStats
+        .filter(t => t.live_tuples > 1000)
+        .slice(0, 2);
+
+      largeTables.forEach(table => {
+        // Create composite index on common patterns
+        recommendations.push({
+          tableName: table.tablename,
+          columnName: 'created_at',
+          indexType: 'btree',
+          reason: `Large table (${table.live_tuples} rows), indexing timestamp for time-based queries`
+        });
+      });
+    }
+
+    // Strategy 3: Default recommendations if no analysis data
+    if (recommendations.length === 0) {
+      recommendations.push({
+        tableName: 'users',
+        columnName: 'email',
+        indexType: 'btree',
+        reason: 'Default optimization: email lookups are commonly used'
+      });
+    }
+
+    console.log(`[IndexAgent:${this.forkId}] Generated ${recommendations.length} index recommendations`);
     return recommendations;
   }
 

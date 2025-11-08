@@ -42,18 +42,26 @@ class TigerService {
         console.log(`[TigerService] this.mainServiceId: ${this.mainServiceId}`);
 
         // Use pgpass mode to save passwords to .pgpass file for easy access
-        const command = `${process.env.HOME}/go/bin/tiger --password-storage pgpass service fork ${this.mainServiceId} --name ${forkName} --now`;
+        // Increase timeout to 2 minutes for fork creation
+        const command = `timeout 120 ${process.env.HOME}/go/bin/tiger --password-storage pgpass service fork ${this.mainServiceId} --name ${forkName} --now`;
         console.log(`[TigerService] Command: ${command}`);
 
-        const { stdout, stderr } = await execAsync(command);
+        const startTime = Date.now();
+        const { stdout, stderr } = await execAsync(command, { timeout: 120000 });
+        const duration = ((Date.now() - startTime) / 1000).toFixed(2);
 
         if (stderr) {
           console.log(`[TigerService] stderr: ${stderr}`);
         }
         console.log(`[TigerService] stdout: ${stdout}`);
+        console.log(`[TigerService] Fork created in ${duration}s`);
 
         const forkId = this.parseForkId(stdout);
         console.log(`[TigerService] Parsed fork ID: ${forkId}`);
+
+        if (!forkId) {
+          throw new Error('Failed to parse fork ID from Tiger CLI output');
+        }
 
         const connectionString = await this.getForkConnectionString(forkId);
         console.log(`[TigerService] Connection string: ${connectionString}`);
@@ -63,28 +71,36 @@ class TigerService {
           name: forkName,
           connectionString,
           createdAt: new Date().toISOString(),
-          status: 'active'
+          status: 'active',
+          creationTime: duration
         };
       } catch (error) {
-        console.error(`[TigerService] Error creating fork ${forkName} with Tiger CLI:`, error);
+        console.error(`[TigerService] Error creating fork ${forkName} with Tiger CLI:`, error.message);
+
+        // Check if it's a timeout error
+        if (error.message.includes('timeout') || error.message.includes('deadline exceeded')) {
+          console.error(`[TigerService] Fork creation timed out. This may indicate Tiger Cloud API issues or trial account limitations.`);
+        }
+
         console.error(`[TigerService] Falling back to demo mode`);
 
         // Fallback to demo mode
-        const forkId = `fork-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const forkId = `fork-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
         return {
           id: forkId,
           name: forkName,
           connectionString: process.env.DATABASE_URL, // Use main DB in dev mode
           createdAt: new Date().toISOString(),
           status: 'active',
-          isDemoMode: true
+          isDemoMode: true,
+          fallbackReason: error.message
         };
       }
     }
 
     // For development/demo: simulate fork creation
     console.log(`[TigerService] Creating fork ${forkName} in demo mode...`);
-    const forkId = `fork-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const forkId = `fork-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
     return {
       id: forkId,
       name: forkName,
@@ -102,9 +118,9 @@ class TigerService {
   async listForks() {
     try {
       if (process.env.TIGER_CLI_AVAILABLE === 'true') {
-        const { stdout } = await execAsync(`${process.env.HOME}/go/bin/tiger service list --format json`);
+        const { stdout } = await execAsync(`${process.env.HOME}/go/bin/tiger service list -o json`);
         const services = JSON.parse(stdout);
-        return services.filter(s => s.parentServiceId === this.mainServiceId);
+        return services.filter(s => s.parent_service_id === this.mainServiceId);
       }
 
       // Demo mode: return empty array

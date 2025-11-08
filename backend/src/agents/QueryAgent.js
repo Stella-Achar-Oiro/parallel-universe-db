@@ -1,5 +1,4 @@
 import pg from 'pg';
-import mcpService from '../services/mcpService.js';
 
 const { Pool } = pg;
 
@@ -21,10 +20,9 @@ class QueryAgent {
 
   /**
    * Run query optimization
-   * @param {string} problemDescription - User's description of the problem
    * @returns {Promise<Object>} Optimization results
    */
-  async optimize(problemDescription) {
+  async optimize() {
     try {
       console.log(`[QueryAgent:${this.forkId}] Starting query optimization...`);
 
@@ -147,45 +145,32 @@ class QueryAgent {
   }
 
   /**
-   * Get AI-powered query rewrite suggestions
+   * Get rule-based query rewrite suggestions (no AI required)
    */
   async getQueryRewrites(analyses) {
+    console.log(`[QueryAgent:${this.forkId}] Using rule-based query optimizations`);
     const rewrites = [];
 
     for (const analysis of analyses) {
-      try {
-        const suggestion = await mcpService.suggestQueryRewrite(
-          analysis.originalQuery,
-          { executionPlan: analysis.executionPlan }
-        );
+      const optimized = this.applySimpleOptimizations(analysis.originalQuery);
+      const explanation = this.explainOptimization(analysis.originalQuery, optimized);
 
-        rewrites.push({
-          original: analysis.originalQuery,
-          optimized: suggestion.optimizedQuery || analysis.originalQuery,
-          explanation: suggestion.explanation,
-          expectedImprovement: suggestion.improvement || 0,
-          currentTime: analysis.currentTime
-        });
+      rewrites.push({
+        original: analysis.originalQuery,
+        optimized: optimized,
+        explanation: explanation,
+        expectedImprovement: 15,
+        currentTime: analysis.currentTime
+      });
 
-        this.optimizations.push({
-          type: 'query_rewrite',
-          description: suggestion.explanation,
-          sql: suggestion.optimizedQuery
-        });
-      } catch (error) {
-        console.warn('Could not get rewrite suggestion:', error.message);
-
-        // Use a simple optimization pattern
-        rewrites.push({
-          original: analysis.originalQuery,
-          optimized: this.applySimpleOptimizations(analysis.originalQuery),
-          explanation: 'Applied basic query optimizations',
-          expectedImprovement: 15,
-          currentTime: analysis.currentTime
-        });
-      }
+      this.optimizations.push({
+        type: 'query_rewrite',
+        description: explanation,
+        sql: optimized
+      });
     }
 
+    console.log(`[QueryAgent:${this.forkId}] Generated ${rewrites.length} query optimizations`);
     return rewrites;
   }
 
@@ -206,6 +191,27 @@ class QueryAgent {
     }
 
     return optimized;
+  }
+
+  /**
+   * Explain the optimization applied
+   */
+  explainOptimization(original, optimized) {
+    const explanations = [];
+
+    if (original.includes('SELECT *') && !optimized.includes('SELECT *')) {
+      explanations.push('Replaced SELECT * with specific columns to reduce data transfer');
+    }
+
+    if (!original.toLowerCase().includes('limit') && optimized.toLowerCase().includes('limit')) {
+      explanations.push('Added LIMIT clause to prevent unbounded result sets');
+    }
+
+    if (explanations.length === 0) {
+      return 'Applied standard query optimization patterns';
+    }
+
+    return explanations.join('; ');
   }
 
   /**
