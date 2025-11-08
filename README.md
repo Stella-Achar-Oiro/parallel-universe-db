@@ -1,4 +1,4 @@
-# 🌌 Parallel Universe Database
+# Parallel Universe Database
 
 > What if your database could exist in multiple realities?
 
@@ -10,7 +10,7 @@ Spawn instant database forks (parallel universes), deploy AI agents to each univ
 ![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)
 ![React](https://img.shields.io/badge/react-18.2.0-blue)
 
-## 🎯 What Makes This Special
+## What Makes This Special
 
 - **Zero-Copy Forks**: Instant database forks without copying data (~2 seconds vs 30+ minutes)
 - **AI Agent Competition**: 4 specialized agents test different optimizations
@@ -20,7 +20,7 @@ Spawn instant database forks (parallel universes), deploy AI agents to each univ
 - **Free Tier Compatible**: Sequential execution mode works within Tiger Cloud free tier limits
 - **Full Accessibility**: WCAG AA compliant with keyboard navigation and screen reader support
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -92,7 +92,7 @@ npm run dev
 
 Visit http://localhost:5173 to see the application!
 
-## 🏗️ Architecture
+## Architecture
 
 ### Backend (Node.js + Express)
 
@@ -127,7 +127,7 @@ frontend/
 │   └── App.jsx                    # Main application
 ```
 
-## 🎮 How It Works
+## How It Works
 
 1. **Describe Problem**: User enters a database performance issue
 2. **Select Strategies**: Choose which optimization approaches to test (Index, Query, Cache, Schema)
@@ -176,15 +176,15 @@ frontend/
 - Updates statistics with ANALYZE
 - Optimizes storage with VACUUM
 
-## 🎨 Features
+## Features
 
 ### Accessibility (WCAG AA Compliant)
-- ✅ Semantic HTML structure
-- ✅ Keyboard navigation throughout
-- ✅ ARIA labels on all interactive elements
-- ✅ Screen reader tested
-- ✅ 4.5:1 color contrast minimum
-- ✅ Focus indicators on all focusable elements
+-  Semantic HTML structure
+-  Keyboard navigation throughout
+-  ARIA labels on all interactive elements
+-  Screen reader tested
+-  4.5:1 color contrast minimum
+-  Focus indicators on all focusable elements
 
 ### Technologies Used
 
@@ -207,7 +207,7 @@ frontend/
 - pg_stat_statements - Query analysis
 - pgvector - Hybrid search (future feature)
 
-## 📊 Performance Metrics
+##  Performance Metrics
 
 Based on our e-commerce demo dataset:
 
@@ -222,7 +222,7 @@ Typical improvements:
 - Caching: 40-60% reduction in load
 - Schema optimization: 30-50% better planning
 
-## 💡 Use Cases
+## Use Cases
 
 1. **Development Testing**: Try different optimization strategies without affecting production
 2. **A/B Testing**: Compare multiple approaches simultaneously
@@ -230,7 +230,7 @@ Typical improvements:
 4. **Learning**: Understand how different optimizations affect performance
 5. **Cost Optimization**: Test strategies without expensive database clones
 
-## 🔮 Future Enhancements
+## Future Enhancements
 
 - [ ] Hybrid search integration (BM25 + vector search for finding similar past optimizations)
 - [ ] Persistent memory (agents learn from past optimizations)
@@ -240,25 +240,25 @@ Typical improvements:
 - [ ] Slack/Discord notifications
 - [ ] Automated scheduling for routine optimization
 
-## 🤝 Contributing
+## Contributing
 
 This is a competition submission, but feedback is welcome! Feel free to:
 - Open issues for bugs or suggestions
 - Star the repo if you find it interesting
 - Share with others who might benefit
 
-## 📝 License
+## License
 
 MIT License - see LICENSE file for details
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - **Tiger Cloud** for zero-copy fork technology
 - **Anthropic** for Claude AI capabilities
 - **DEV Community** for hosting the challenge
 - **PostgreSQL** for being an amazing database
 
-## 👩‍💻 Author
+## Author
 
 **Stella Achar Oiro**
 
@@ -267,6 +267,6 @@ MIT License - see LICENSE file for details
 
 ---
 
-**Built with ❤️ using Agentic Postgres, Tiger Cloud, and Claude AI**
+**Built using Agentic Postgres, Tiger Cloud**
 
-*Making database optimization feel like magic* ✨
+*Making database optimization feel like magic*
