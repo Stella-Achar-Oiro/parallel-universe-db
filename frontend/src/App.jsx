@@ -34,6 +34,21 @@ function App() {
   const [toasts, setToasts] = useState([]);
   const [selectedPrompt, setSelectedPrompt] = useState('');
 
+  // Keep backend warm to prevent cold starts
+  useEffect(() => {
+    const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    
+    const keepWarm = () => {
+      fetch(`${API_BASE}/health`).catch(() => {});
+    };
+    
+    // Ping immediately and then every 10 minutes
+    keepWarm();
+    const interval = setInterval(keepWarm, 600000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
   // Toast helpers
   const addToast = (type, title, message) => {
     const id = Date.now();
